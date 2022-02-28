@@ -2,6 +2,7 @@ from enum import Enum, auto
 
 import uvicorn
 from fastapi import FastAPI, Body
+from fastapi.responses import PlainTextResponse
 import sqlite3
 
 app = FastAPI()
@@ -30,6 +31,18 @@ def db_action(sql: str, args: tuple, action: DBAction):
     conn.close()
 
     return result
+
+
+def check_existence(username: str):
+    conn = sqlite3.connect('db.sqlite')
+    cursor = conn.cursor()
+    return db_action(
+        '''
+            SELECT * FROM users WHERE username = ?
+        ''',
+        username,
+        DBAction.fetchone,
+    )
 
 
 @app.on_event('startup')
@@ -67,6 +80,9 @@ def signup(username: str = Body(...), password: str = Body(...)):
 
 @app.post('/login')
 def login(username: str = Body(...), password: str = Body(...)):
+    if check_existence(username) != None:
+        return PlainTextResponse('User with this username already exists.')
+
     return db_action(
         '''
             SELECT * FROM users WHERE username = ? AND password = ?
