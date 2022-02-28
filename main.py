@@ -58,9 +58,9 @@ def index():
 def signup(username: str = Body(...), password: str = Body(...)):
     return db_action(
         '''
-            INSERT INTO users (username, password) VALUES (username, password)
+            INSERT INTO users (username, password) VALUES (?, ?)
         ''',
-        (),
+        (username, password),
         DBAction.commit,
     )
 
