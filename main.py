@@ -69,6 +69,8 @@ def index():
 
 @app.post('/signup')
 def signup(username: str = Body(...), password: str = Body(...)):
+    if check_existence(username) != None:
+        return PlainTextResponse('User with this username already exists.')
     return db_action(
         '''
             INSERT INTO users (username, password) VALUES (?, ?)
@@ -80,9 +82,6 @@ def signup(username: str = Body(...), password: str = Body(...)):
 
 @app.post('/login')
 def login(username: str = Body(...), password: str = Body(...)):
-    if check_existence(username) != None:
-        return PlainTextResponse('User with this username already exists.')
-
     return db_action(
         '''
             SELECT * FROM users WHERE username = ? AND password = ?
