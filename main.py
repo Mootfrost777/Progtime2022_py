@@ -34,13 +34,11 @@ def db_action(sql: str, args: tuple, action: DBAction):
 
 
 def check_existence(username: str):
-    conn = sqlite3.connect('db.sqlite')
-    cursor = conn.cursor()
     return db_action(
         '''
             SELECT * FROM users WHERE username = ?
         ''',
-        username,
+        (username, ),
         DBAction.fetchone,
     )
 
@@ -69,7 +67,7 @@ def index():
 
 @app.post('/signup')
 def signup(username: str = Body(...), password: str = Body(...)):
-    if check_existence(username) != None:
+    if check_existence(username) is not None:
         return PlainTextResponse('User with this username already exists.')
     return db_action(
         '''
