@@ -1,13 +1,16 @@
 from enum import Enum, auto
 
-import jose.exceptions
 import uvicorn
-from fastapi import FastAPI, Body
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI, Body, Header, Depends
+from fastapi.responses import HTMLResponse
+from fastapi.exceptions import HTTPException
+
 import sqlite3
+
+import jose.exceptions
 from jose import jwt
 
-import config
+import config  # import secret code
 
 app = FastAPI()
 
@@ -64,28 +67,32 @@ def create_db():
     conn.close()
 
 
-@app.get('/')
-def index(token):
+def get_user(authorization: str = Header(...)):
     try:
-        user_id = jwt.decode(token, config.SECRET_CODE, algorithms=['SH256'])['id']
+        user_id = jwt.decode(authorization, config.SECRET_CODE, algorithms=['SH256'])['id']
     except jose.exceptions.JWTError:
-        return {
-            'error': 'Invalid token'
-        }
+        raise HTTPException(status_code=400, detail='Invalid token')
     user = db_action(
             '''
                 SELECT * FROM users WHERE id = ?
             ''',
-            (user_id),
+            (user_id,),
             DBAction.fetchone,
         )
-    return user[0]
+    return user
+
+
+@app.get('/')
+def index():
+    with open('index.html', 'r') as f:
+        data = f.read()
+    return HTMLResponse(data)  # return home page
 
 
 @app.post('/signup')
 def signup(username: str = Body(...), password: str = Body(...)):
     if check_existence(username) is not None:
-        return PlainTextResponse('User with this username already exists.')
+        raise HTTPException(status_code=409, detail='Username already exists')
     return db_action(
         '''
             INSERT INTO users (username, password) VALUES (?, ?)
@@ -93,6 +100,7 @@ def signup(username: str = Body(...), password: str = Body(...)):
         (username, password),
         DBAction.commit,
     )
+
 
 @app.post('/login')
 def login(username: str = Body(...), password: str = Body(...)):
@@ -104,9 +112,7 @@ def login(username: str = Body(...), password: str = Body(...)):
         DBAction.fetchone,
     )
     if not user:
-        return {
-            'error': 'User not found'
-        }
+        raise HTTPException(status_code=404, detail='User not found')
 
     token = jwt.encode({
         'id': user[0]
@@ -116,5 +122,6 @@ def login(username: str = Body(...), password: str = Body(...)):
     }
 
 
-uvicorn.run(app)
+if __name__ == '__main__':
+    uvicorn.run('main:app', reload=True)
 
