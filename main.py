@@ -84,7 +84,7 @@ def get_user(authorization: str = Header(...)):
 
 @app.get('/')
 def index():
-    with open('index.html', 'r') as f:
+    with open('index.html', 'r', encoding='UTF-8') as f:
         data = f.read()
     return HTMLResponse(data)  # return home page
 
