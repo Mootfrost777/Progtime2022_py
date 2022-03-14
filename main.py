@@ -1,9 +1,13 @@
 from enum import Enum, auto
 
+import jose.exceptions
 import uvicorn
 from fastapi import FastAPI, Body
 from fastapi.responses import PlainTextResponse
 import sqlite3
+from jose import jwt
+
+import config
 
 app = FastAPI()
 
@@ -61,8 +65,21 @@ def create_db():
 
 
 @app.get('/')
-def index():
-    return 'Hello, world!'
+def index(token):
+    try:
+        user_id = jwt.decode(token, config.SECRET_CODE, algorithms=['SH256'])['id']
+    except jose.exceptions.JWTError:
+        return {
+            'error': 'Invalid token'
+        }
+    user = db_action(
+            '''
+                SELECT * FROM users WHERE id = ?
+            ''',
+            (user_id),
+            DBAction.fetchone,
+        )
+    return user[0]
 
 
 @app.post('/signup')
@@ -77,16 +94,26 @@ def signup(username: str = Body(...), password: str = Body(...)):
         DBAction.commit,
     )
 
-
 @app.post('/login')
 def login(username: str = Body(...), password: str = Body(...)):
-    return db_action(
+    user = db_action(
         '''
             SELECT * FROM users WHERE username = ? AND password = ?
         ''',
         (username, password),
         DBAction.fetchone,
     )
+    if not user:
+        return {
+            'error': 'User not found'
+        }
+
+    token = jwt.encode({
+        'id': user[0]
+    }, config.SECRET_CODE)
+    return {
+        'token': token
+    }
 
 
 uvicorn.run(app)
