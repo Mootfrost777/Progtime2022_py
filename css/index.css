@@ -1,0 +1,8 @@
+h1 {
+    font-family: "Cascadia Mono";
+    font-size: 15px;
+    margin-bottom: 0;
+}
+input{
+    display: block;
+}

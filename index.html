@@ -5,32 +5,11 @@
     <title>ProgTime 2022</title>
 </head>
 <body>
-    <h1>TEST HEADER 123</h1>
-    <input type="text" id="login">
-    <input type="text" id="password">
-    <button id="do_login" type="button" onclick="submit_form()">Log in</button>
-
-
-    <script>
-        async function submit_form(){
-            let login = document.getElementById('login')
-            console.log(login.value)
-            let password = document.getElementById('password')
-            console.log(password.value)
-
-            let resp = await fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: login.value,
-                    password: password.value,
-                })
-            })
-            let data = await resp.json()
-            console.log(data)
+    <h1>Hello, world!</h1>
+    <style>
+        h1 {
+            font-family: "Cascadia Mono";
         }
-    </script>
+    </style>
 </body>
 </html>

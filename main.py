@@ -22,6 +22,7 @@ class DBAction(Enum):
 
 
 def db_action(sql: str, args: tuple, action: DBAction):
+    """Performs an action with the database by enum argument."""
     conn = sqlite3.connect('db.sqlite')
     cursor = conn.cursor()
 
@@ -41,6 +42,7 @@ def db_action(sql: str, args: tuple, action: DBAction):
 
 
 def check_existence(username: str):
+    """Checks if the user exists."""
     return db_action(
         '''
             SELECT * FROM users WHERE username = ?
@@ -52,6 +54,7 @@ def check_existence(username: str):
 
 @app.on_event('startup')
 def create_db():
+    """Generates a database if it does not already exists."""
     conn = sqlite3.connect('db.sqlite')
     cursor = conn.cursor()
 
@@ -68,6 +71,7 @@ def create_db():
 
 
 def get_user(authorization: str = Header(...)):
+    """Gets the user by token."""
     try:
         user_id = jwt.decode(authorization, config.SECRET_CODE, algorithms=['SH256'])['id']
     except jose.exceptions.JWTError:
@@ -84,13 +88,31 @@ def get_user(authorization: str = Header(...)):
 
 @app.get('/')
 def index():
+    """Returns home page."""
     with open('index.html', 'r', encoding='UTF-8') as f:
         data = f.read()
     return HTMLResponse(data)  # return home page
 
 
+@app.get('/login-page')
+def login_page():
+    """Returns log in page."""
+    with open('login.html', 'r', encoding='UTF-8') as f:
+        data = f.read()
+    return HTMLResponse(data)
+
+
+@app.get('/signup-page')
+def signup_page():
+    """Returns sign up page."""
+    with open('registration.html', 'r', encoding='UTF-8') as f:
+        data = f.read()
+    return HTMLResponse(data)
+
+
 @app.post('/signup')
 def signup(username: str = Body(...), password: str = Body(...)):
+    """Adds a new user to the database."""
     if check_existence(username) is not None:
         raise HTTPException(status_code=409, detail='Username already exists')
     return db_action(
@@ -104,6 +126,7 @@ def signup(username: str = Body(...), password: str = Body(...)):
 
 @app.post('/login')
 def login(username: str = Body(...), password: str = Body(...)):
+    """Retrieves user data by username and password."""
     user = db_action(
         '''
             SELECT * FROM users WHERE username = ? AND password = ?

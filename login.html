@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ProgTime 2022</title>
+
+    <!-- <link rel="stylesheet" href="css/index.css">  Попробовал, не получилось =( -->
+</head>
+<body>
+    <h1>Log in</h1>
+    <input type="text" id="login" placeholder="login">
+    <input type="text" id="password" placeholder="password">
+    <button id="do_login" type="button" onclick="submit_form()">Log in</button>
+
+
+    <script>
+        async function submit_form(){
+            let login = document.getElementById('login')
+            let password = document.getElementById('password')
+
+            let response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: login.value,
+                    password: password.value,
+                })
+            })
+            let data = await response.json()
+            console.log(data)
+        }
+    </script>
+</body>
+</html>
