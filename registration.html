@@ -20,8 +20,6 @@
             let password = document.getElementById('password').value
             let rep_password = document.getElementById('repeat_password').value
 
-            if (password === rep_password)
-            {
                 let response = await fetch('/signup', {
                 method: 'POST',
                 headers: {
@@ -30,13 +28,11 @@
                 body: JSON.stringify({
                     username: login,
                     password: password,
+                    rep_password: rep_password,
                 })
                 })
                 let data = await response.json()
                 console.log(data)
-            } else {
-                console.log("Passwords don't match.")
-            }
      }
   </script>
 </body>

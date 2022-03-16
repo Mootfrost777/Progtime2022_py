@@ -111,8 +111,10 @@ def signup_page():
 
 
 @app.post('/signup')
-def signup(username: str = Body(...), password: str = Body(...)):
+def signup(username: str = Body(...), password: str = Body(...), rep_password: str = Body(...)):
     """Adds a new user to the database."""
+    if password != rep_password:
+        raise HTTPException(status_code=409, detail='Passwords don\'t match')
     if check_existence(username) is not None:
         raise HTTPException(status_code=409, detail='Username already exists')
     return db_action(
