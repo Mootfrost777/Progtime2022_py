@@ -86,44 +86,44 @@ def get_user(authorization: str = Header(...)):
     return user
 
 
+def send_html(path: str):
+    with open(f'html/{path}.html', 'r', encoding='UTF-8') as f:
+        data = f.read()
+    return HTMLResponse(data)
+
 @app.get('/')
 def index():
     """Returns home page."""
-    with open('index.html', 'r', encoding='UTF-8') as f:
-        data = f.read()
-    return HTMLResponse(data)  # return home page
+    return send_html('index')
 
 
 @app.get('/login-page')
 def login_page():
     """Returns log in page."""
-    with open('login.html', 'r', encoding='UTF-8') as f:
-        data = f.read()
-    return HTMLResponse(data)
+    return send_html('login')
 
 
 @app.get('/signup-page')
 def signup_page():
     """Returns sign up page."""
-    with open('registration.html', 'r', encoding='UTF-8') as f:
-        data = f.read()
-    return HTMLResponse(data)
+    return send_html('registration')
 
 
 @app.post('/signup')
-def signup(username: str = Body(...), password: str = Body(...), rep_password: str = Body(...)):
-    """Adds a new user to the database."""
-    if password != rep_password:
-        raise HTTPException(status_code=409, detail='Passwords don\'t match')
+def signup(username: str = Body(...), password: str = Body(...)):
+    """Adds a new user to the database."""gi
     if check_existence(username) is not None:
         raise HTTPException(status_code=409, detail='Username already exists')
-    return db_action(
+    db_action(
         '''
             INSERT INTO users (username, password) VALUES (?, ?)
         ''',
         (username, password),
         DBAction.commit,
     )
+    return {
+        'message': 'Registration succeeded'
+    }
 
 
 @app.post('/login')
