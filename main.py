@@ -1,16 +1,14 @@
+import sqlite3
 from enum import Enum, auto
 
+import jose.exceptions
 import uvicorn
 from fastapi import FastAPI, Body, Header, Depends
-from fastapi.responses import HTMLResponse
 from fastapi.exceptions import HTTPException
-
-import sqlite3
-
-import jose.exceptions
+from fastapi.responses import HTMLResponse
 from jose import jwt
 
-import config  # import secret code
+import config
 
 app = FastAPI()
 
@@ -22,7 +20,6 @@ class DBAction(Enum):
 
 
 def db_action(sql: str, args: tuple, action: DBAction):
-    """Performs an action with the database by enum argument."""
     conn = sqlite3.connect('db.sqlite')
     cursor = conn.cursor()
 
@@ -41,28 +38,16 @@ def db_action(sql: str, args: tuple, action: DBAction):
     return result
 
 
-def check_existence(username: str):
-    """Checks if the user exists."""
-    return db_action(
-        '''
-            SELECT * FROM users WHERE username = ?
-        ''',
-        (username, ),
-        DBAction.fetchone,
-    )
-
-
 @app.on_event('startup')
 def create_db():
-    """Generates a database if it does not already exists."""
     conn = sqlite3.connect('db.sqlite')
     cursor = conn.cursor()
 
     cursor.execute('''
-        CREATE TABLE if NOT EXISTS users (
-            id INTEGER PRIMARY KEY,
-            username VARCHAR NOT NULL,
-            password VARCHAR NOT NULL
+        create table if not exists users (
+            id integer primary key,
+            username varchar not null,
+            password varchar not null
         );
     ''')
 
@@ -71,82 +56,100 @@ def create_db():
 
 
 def get_user(authorization: str = Header(...)):
-    """Gets the user by token."""
     try:
-        user_id = jwt.decode(authorization, config.SECRET_CODE, algorithms=['SH256'])['id']
+        user_id = jwt.decode(authorization, config.SECRET_CODE, algorithms=['HS256'])['id']
     except jose.exceptions.JWTError:
-        raise HTTPException(status_code=400, detail='Invalid token')
-    user = db_action(
-            '''
-                SELECT * FROM users WHERE id = ?
-            ''',
-            (user_id,),
-            DBAction.fetchone,
+        raise HTTPException(
+            status_code=400,
+            detail='Invalid token'
         )
+
+    user = db_action(
+        '''
+            select * from users where id = ?
+        ''',
+        (user_id,),
+        DBAction.fetchone,
+    )
     return user
 
 
-def send_html(path: str):
-    with open(f'html/{path}.html', 'r', encoding='UTF-8') as f:
-        data = f.read()
-    return HTMLResponse(data)
+def send_html(name: str):
+    with open(f'html/{name}.html', 'r', encoding='utf-8') as f:
+        return HTMLResponse(f.read())
+
 
 @app.get('/')
 def index():
-    """Returns home page."""
     return send_html('index')
 
 
-@app.get('/login-page')
+@app.get('/login')
 def login_page():
-    """Returns log in page."""
     return send_html('login')
 
 
-@app.get('/signup-page')
-def signup_page():
-    """Returns sign up page."""
-    return send_html('registration')
+@app.get('/signup')
+def register_page():
+    return send_html('signup')
 
 
-@app.post('/signup')
-def signup(username: str = Body(...), password: str = Body(...)):
-    """Adds a new user to the database."""gi
-    if check_existence(username) is not None:
-        raise HTTPException(status_code=409, detail='Username already exists')
-    db_action(
-        '''
-            INSERT INTO users (username, password) VALUES (?, ?)
-        ''',
-        (username, password),
-        DBAction.commit,
-    )
+@app.get('/api/ping')
+def ping(user: list = Depends(get_user)):
     return {
-        'message': 'Registration succeeded'
+        'response': 'Pong',
+        'username': user[1],
     }
 
 
-@app.post('/login')
+@app.post('/api/login')
 def login(username: str = Body(...), password: str = Body(...)):
-    """Retrieves user data by username and password."""
     user = db_action(
         '''
-            SELECT * FROM users WHERE username = ? AND password = ?
+            select * from users where username = ? and password = ?
         ''',
         (username, password),
         DBAction.fetchone,
     )
     if not user:
-        raise HTTPException(status_code=404, detail='User not found')
+        raise HTTPException(
+            status_code=404,
+            detail='User not found'
+        )
 
-    token = jwt.encode({
-        'id': user[0]
-    }, config.SECRET_CODE)
+    token = jwt.encode({'id': user[0]}, config.SECRET_CODE, algorithm='HS256')
     return {
         'token': token
     }
 
 
+@app.post('/api/signup')
+def register(username: str = Body(...), password: str = Body(...)):
+    user = db_action(
+        '''
+            select * from users where username = ?
+        ''',
+        (username,),
+        DBAction.fetchone,
+    )
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail='User already exists'
+        )
+
+    db_action(
+        '''
+            insert into users (username, password) values (?, ?)
+        ''',
+        (username, password),
+        DBAction.commit,
+    )
+
+    return {
+        'message': 'Registration successful'
+    }
+
+
 if __name__ == '__main__':
     uvicorn.run('main:app', reload=True)
-

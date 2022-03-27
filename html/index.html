@@ -1,15 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>ProgTime 2022</title>
 </head>
 <body>
-    <h1>Hello, world!</h1>
-    <style>
-        h1 {
-            font-family: "Cascadia Mono";
+    <script>
+        async function main() {
+            let token = localStorage.getItem('token')
+            let resp = await fetch('/api/ping', {
+                headers: {
+                    'Authorization': token
+                }
+            })
+            let data = await resp.json()
+            console.log(data)
         }
-    </style>
+        main()
+    </script>
 </body>
 </html>

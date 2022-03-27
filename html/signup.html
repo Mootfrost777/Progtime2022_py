@@ -7,20 +7,25 @@
     <!-- <link rel="stylesheet" href="css/index.css">  Попробовал, не получилось =( -->
 </head>
 <body>
-    <h1>Log in</h1>
+    <h1>Sign up</h1>
     <input type="text" id="login" placeholder="login">
     <input type="text" id="password" placeholder="password">
-    <button id="do_login" type="button" onclick="submit_form()">Log in</button>
+    <input type="text" id="repeat_password" placeholder="repeat password">
+    <button id="do_reg" type="button" onclick="submit_form()">Sign up</button>
 
 
-    <script>
-        async function submit_form() {
+  <script>
+   async function submit_form() {
             let login = document.getElementById('login')
-            console.log(login.value)
             let password = document.getElementById('password')
-            console.log(password.value)
+            let repeat_password = document.getElementById('repeat_password')
 
-            let resp = await fetch('/api/login', {
+            if (password.value != repeat_password.value) {
+                alert('Passwords do not match')
+                return
+            }
+
+            let response = await fetch('/api/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -30,22 +35,20 @@
                     password: password.value,
                 })
             })
-            let data = await resp.json()
-            let token = data['token']
+            let data = await response.json()
 
-            if (resp.status == 400) {
+            if (response.status == 400) {
                 alert(data['message'])
                 return
             }
-            if (resp.status != 200) {
+
+            if (response.status != 200) {
                 alert('Error')
                 return
             }
 
-            localStorage.setItem('token', token)
-
-            window.location = '/'
+            window.location = '/login'
         }
-    </script>
+  </script>
 </body>
 </html>
