@@ -44,10 +44,10 @@ def create_db():
     cursor = conn.cursor()
 
     cursor.execute('''
-        create table if not exists users (
-            id integer primary key,
-            username varchar not null,
-            password varchar not null
+        CREATE TABLE if NOT EXISTS users (
+            id INTEGER PRIMARY KEY,
+            username VARCHAR NOT NULL,
+            password VARCHAR NOT NULL
         );
     ''')
 
@@ -66,7 +66,7 @@ def get_user(authorization: str = Header(...)):
 
     user = db_action(
         '''
-            select * from users where id = ?
+            SELECT * FROM users WHERE id = ?
         ''',
         (user_id,),
         DBAction.fetchone,
@@ -106,7 +106,7 @@ def ping(user: list = Depends(get_user)):
 def login(username: str = Body(...), password: str = Body(...)):
     user = db_action(
         '''
-            select * from users where username = ? and password = ?
+            SELECT * FROM users WHERE username = ? AND password = ?
         ''',
         (username, password),
         DBAction.fetchone,
@@ -127,7 +127,7 @@ def login(username: str = Body(...), password: str = Body(...)):
 def register(username: str = Body(...), password: str = Body(...)):
     user = db_action(
         '''
-            select * from users where username = ?
+            SELECT * FROM users WHERE username = ?
         ''',
         (username,),
         DBAction.fetchone,
@@ -140,7 +140,7 @@ def register(username: str = Body(...), password: str = Body(...)):
 
     db_action(
         '''
-            insert into users (username, password) values (?, ?)
+            INSERT INTO users (username, password) VALUES (?, ?)
         ''',
         (username, password),
         DBAction.commit,
