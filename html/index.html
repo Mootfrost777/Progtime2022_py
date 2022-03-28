@@ -3,18 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <title>ProgTime 2022</title>
+    <style>
+        .text {
+            width: 500px;
+            height: 300px;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        #run {
+            font-family: monospace;
+            font-size: 25px;
+            margin: 0;
+            display: block;
+        }
+    </style>
 </head>
 <body>
+    <textarea id="code" spellcheck="false" class="text">print('Hello, world!')</textarea>
+    <button onclick="main()" id="run">Run</button>
+    <textarea id="output" spellcheck="false" readonly="readonly" class="text"></textarea>
     <script>
         async function main() {
             let token = localStorage.getItem('token')
-            let resp = await fetch('/api/ping', {
+            let code = document.getElementById('code').value
+            let resp = await fetch('/api/execute', {
+                method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': token
-                }
+                },
+                body: JSON.stringify({
+                    code: code
+                }),
             })
             let data = await resp.json()
-            console.log(data)
+
+
+            let output = document.getElementById('output')
+            output.value = data['result']
         }
         main()
     </script>

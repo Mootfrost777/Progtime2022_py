@@ -33,9 +33,8 @@
             let data = await resp.json()
             let token = data['token']
 
-            if (resp.status == 400) {
-                alert(data['message'])
-                return
+            if (resp.status == 404) {
+                alert('Wrong login or password')
             }
             if (resp.status != 200) {
                 alert('Error')
