@@ -10,7 +10,7 @@ from jose import jwt
 
 import config
 from utils import db_action, DBAction, run_code
-from task_checker import get_task
+from task_checker import Task
 
 app = FastAPI()
 
@@ -38,7 +38,7 @@ def create_db():
 
     cursor.close()
     conn.close()
-    task = get_task(1)
+    task = Task.get(1)
 
 
 def get_user(authorization: str = Header(...)):
@@ -141,6 +141,18 @@ def register(username: str = Body(...), password: str = Body(...)):
 
     return {
         'message': 'Registration successful'
+    }
+
+
+@app.get('/api/get_tasks')
+def get_tasks(user: list = Depends(get_user)):
+    return Task.all()
+
+
+@app.post('/api/send_task')
+def send_task(user: list = Depends(get_user), task_id: int = Body(...), code: str = Body(...)):
+    return {
+        'message': 'Task sent'
     }
 
 

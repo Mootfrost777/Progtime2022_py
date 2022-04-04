@@ -41,7 +41,7 @@ def db_action(sql: str, args: tuple, action: DBAction):
         result = cursor.fetchall()
     elif action == DBAction.commit:
         conn.commit()
-        result = None
+        result = cursor.lastrowid
 
     cursor.close()
     conn.close()
