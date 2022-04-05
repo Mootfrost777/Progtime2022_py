@@ -151,8 +151,9 @@ def get_tasks(user: list = Depends(get_user)):
 
 @app.post('/api/send_task')
 def send_task(user: list = Depends(get_user), task_id: int = Body(...), code: str = Body(...)):
+    task = Task.get(task_id)
     return {
-        'message': 'Task sent'
+        'result': task.check_solution(code)
     }
 
 

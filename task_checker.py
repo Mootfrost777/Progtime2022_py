@@ -62,10 +62,10 @@ class Task:
         )
 
     def check_solution(self, code: str) -> bool:
-        output = run_code(code)
-        output = output.replace('\r', '')
-        if output[-1] == '\n':
-            output = output[:-1]
-        print(repr(output))
+        result = run_code(code)
+        result = result.replace('\r', '')
+        if result[-1] == '\n':
+            result = result[:-1]
+        print(repr(result))
         print(repr(self.result))
-        return output == self.result
+        return result == self.result
