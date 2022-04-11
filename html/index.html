@@ -29,7 +29,6 @@
     <textarea id="output" spellcheck="false" readonly="readonly" class="text"></textarea>
     <script>
         async function main() {
-            let token = localStorage.getItem('token')
             let code = document.getElementById('code').value
             let resp = await fetch('/api/execute', {
                 method: 'POST',

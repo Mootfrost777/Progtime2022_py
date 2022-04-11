@@ -17,6 +17,7 @@ app = FastAPI()
 
 @app.on_event('startup')
 def create_db():
+    """Creates database"""
     conn = sqlite3.connect('db.sqlite')
     cursor = conn.cursor()
 
@@ -42,6 +43,7 @@ def create_db():
 
 
 def get_user(authorization: str = Header(...)):
+    """Returns user"""
     try:
         user_id = jwt.decode(authorization, config.SECRET_CODE, algorithms=['HS256'])['id']
     except jose.exceptions.JWTError:
@@ -61,27 +63,38 @@ def get_user(authorization: str = Header(...)):
 
 
 def send_html(name: str):
+    """Returns html file"""
     with open(f'html/{name}.html', 'r', encoding='utf-8') as f:
         return HTMLResponse(f.read())
 
 
 @app.get('/')
 def index():
+    """Returns index page"""
     return send_html('index')
+
+
+@app.get('/tasks')
+def tasks():
+    """Returns tasks page"""
+    return send_html('tasks')
 
 
 @app.get('/login')
 def login_page():
+    """Returns login page"""
     return send_html('login')
 
 
 @app.get('/signup')
 def register_page():
+    """Returns signup page"""
     return send_html('signup')
 
 
 @app.get('/api/ping')
 def ping(user: list = Depends(get_user)):
+    """Pings server"""
     return {
         'response': 'Pong',
         'username': user[1],
@@ -89,7 +102,8 @@ def ping(user: list = Depends(get_user)):
 
 
 @app.post('/api/execute')
-def ping(user: list = Depends(get_user), code: str = Body(..., embed=True)):
+def execute(user: list = Depends(get_user), code: str = Body(..., embed=True)):
+    """Executes code"""
     return {
         'result': run_code(code)
     }
@@ -97,6 +111,7 @@ def ping(user: list = Depends(get_user), code: str = Body(..., embed=True)):
 
 @app.post('/api/login')
 def login(username: str = Body(...), password: str = Body(...)):
+    """Logs in user"""
     user = db_action(
         '''
             SELECT * FROM users WHERE username = ? AND password = ?
@@ -118,6 +133,7 @@ def login(username: str = Body(...), password: str = Body(...)):
 
 @app.post('/api/signup')
 def register(username: str = Body(...), password: str = Body(...)):
+    """Registers user"""
     user = db_action(
         '''
             SELECT * FROM users WHERE username = ?
@@ -146,11 +162,13 @@ def register(username: str = Body(...), password: str = Body(...)):
 
 @app.get('/api/get_tasks')
 def get_tasks(user: list = Depends(get_user)):
+    """Returns all tasks"""
     return Task.all()
 
 
 @app.post('/api/send_task')
 def send_task(user: list = Depends(get_user), task_id: int = Body(...), code: str = Body(...)):
+    """Checks task"""
     task = Task.get(task_id)
     return {
         'result': task.check_solution(code)

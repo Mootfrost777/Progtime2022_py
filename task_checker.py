@@ -16,6 +16,7 @@ class Task:
 
     @staticmethod
     def create(name: str, description: str, result: str) -> 'Task':
+        """Create a new task"""
         task_id = db_action(
             '''
                 INSERT INTO tasks (name, description, result) VALUES (?, ?, ?)
@@ -28,6 +29,7 @@ class Task:
 
     @staticmethod
     def get(task_id: int) -> 'Task':
+        """Get a task by id"""
         db_task = db_action(
             '''
                 SELECT * FROM tasks WHERE id = ?
@@ -40,6 +42,7 @@ class Task:
 
     @staticmethod
     def all() -> list:
+        """Get all tasks"""
         db_tasks = db_action(
             '''
                 SELECT * FROM tasks
@@ -53,6 +56,7 @@ class Task:
         return tasks
 
     def save(self):
+        """Save the task to the database"""
         db_action(
             '''
                 UPDATE tasks SET name = ?, description = ?, result = ? WHERE id = ?
@@ -62,6 +66,7 @@ class Task:
         )
 
     def check_solution(self, code: str) -> bool:
+        """Check if the task solution is correct"""
         result = run_code(code)
         result = result.replace('\r', '')
         if result[-1] == '\n':

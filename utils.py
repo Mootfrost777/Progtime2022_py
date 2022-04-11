@@ -7,6 +7,7 @@ import sqlite3
 
 
 def run_code(code: str):
+    """Runs code in a subprocess"""
     filename = ''.join(random.choices(string.ascii_letters, k=10))
     filename = f'codes/{filename}.py'
     with open(filename, 'w', encoding='utf-8') as f:
@@ -31,6 +32,7 @@ class DBAction(Enum):
 
 
 def db_action(sql: str, args: tuple, action: DBAction):
+    """Runs a query on the database"""
     conn = sqlite3.connect('db.sqlite')
     cursor = conn.cursor()
 

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ProgTime 2022</title>
+</head>
+<body>
+    <ol id="task_list">
+
+    </ol>
+    <h1 id="header">Задача 1</h1>
+    <p id="description">
+        Описание
+    </p>
+    <textarea id="code" spellcheck="false" class="text">print('Hello, world!')</textarea>
+    <button onclick="main()" id="run">Run</button>
+    <textarea id="output" spellcheck="false" readonly="readonly" class="text"></textarea>
+
+    <script>
+        let tasks
+        async function load_task(task_id) {
+            for (let task of tasks) {
+                if (task.id == task_id) {
+                    document.getElementById('header').textContent = task['name']
+                    document.getElementById('description').textContent = task['description']
+                    return
+                }
+            }
+        }
+
+        async function load_tasks() {
+            let token = localStorage.getItem('token')
+            let response = await fetch('/api/get_tasks', {
+                method: 'GET',
+                headers: {
+                    'Authorization': token
+                },
+            });
+            tasks = await response.json()
+
+
+            let task_list = document.getElementById('task_list')
+            for (let i = 0; i < tasks.length; i++) {
+                let li = document.createElement('li')
+                let task = tasks[i]
+                li.textContent = task['name']
+                li.onclick = () => load_task(task['id'])
+                task_list.appendChild(li)
+            }
+        }
+        load_tasks()
+    </script>
+</body>
+</html>
