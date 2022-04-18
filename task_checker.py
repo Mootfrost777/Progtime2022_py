@@ -37,6 +37,8 @@ class Task:
             (task_id,),
             DBAction.fetchone,
         )
+        if db_task is None:
+            return None
         task = Task(db_task[0], db_task[1], db_task[2], db_task[3])
         return task
 

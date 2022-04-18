@@ -13,7 +13,7 @@
         Описание
     </p>
     <textarea id="code" spellcheck="false" class="text">print('Hello, world!')</textarea>
-    <button onclick="main()" id="run">Run</button>
+    <button onclick="send_task()" id="run">Run</button>
     <textarea id="output" spellcheck="false" readonly="readonly" class="text"></textarea>
 
     <script>
@@ -49,6 +49,30 @@
             }
         }
         load_tasks()
+
+        async function send_task() {
+            let token = localStorage.getItem('token')
+            let code = document.getElementById('code').value
+            for (let task of tasks) {
+                if (task['name'] == document.getElementById('header').textContent) {
+                    let response = await fetch('/api/send_task', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            'task_id': task['id'],
+                            'code': code
+                        })
+                    })
+                    let result = await response.json()
+                    console.log(result)
+                    document.getElementById('output').value = result['result']
+                    return
+                }
+            }
+        }
     </script>
 </body>
 </html>
