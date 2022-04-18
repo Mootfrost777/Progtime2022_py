@@ -13,16 +13,20 @@
         Описание
     </p>
     <textarea id="code" spellcheck="false" class="text">print('Hello, world!')</textarea>
-    <button onclick="send_task()" id="run">Run</button>
+    <button onclick="send_task()" id="run" disabled="disabled">Run</button>
     <textarea id="output" spellcheck="false" readonly="readonly" class="text"></textarea>
 
     <script>
+        document.getElementById('run').disabled = true
         let tasks
-        async function load_task(task_id) {
+        let task_id
+        async function load_task(new_task_id) {
             for (let task of tasks) {
-                if (task.id == task_id) {
+                if (task.id == new_task_id) {
                     document.getElementById('header').textContent = task['name']
                     document.getElementById('description').textContent = task['description']
+                    document.getElementById('run').disabled = false
+                    task_id = task['id']
                     return
                 }
             }
@@ -53,25 +57,19 @@
         async function send_task() {
             let token = localStorage.getItem('token')
             let code = document.getElementById('code').value
-            for (let task of tasks) {
-                if (task['name'] == document.getElementById('header').textContent) {
-                    let response = await fetch('/api/send_task', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': token,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            'task_id': task['id'],
-                            'code': code
-                        })
+                let response = await fetch('/api/send_task', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'task_id': task_id,
+                        'code': code
                     })
-                    let result = await response.json()
-                    console.log(result)
-                    document.getElementById('output').value = result['result']
-                    return
-                }
-            }
+                })
+            let result = await response.json()
+            document.getElementById('output').value = JSON.stringify(result['result'])
         }
     </script>
 </body>

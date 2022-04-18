@@ -6,7 +6,7 @@ from enum import Enum, auto
 import sqlite3
 
 
-def run_code(code: str):
+def run_code(code: str, program_input: str):
     """Runs code in a subprocess"""
     filename = ''.join(random.choices(string.ascii_letters, k=10))
     filename = f'codes/{filename}.py'
@@ -15,12 +15,14 @@ def run_code(code: str):
 
     process = subprocess.Popen(
         ['python', filename],
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
     )
+    process.stdin.write(program_input.encode(encoding='utf-8'))
+    process.stdin.flush()
     process.wait()
     stdout = process.stdout.read()
     print(stdout)
-
     os.remove(filename)
     return stdout.decode()
 

@@ -1,3 +1,4 @@
+import json
 
 from utils import db_action, DBAction, run_code
 
@@ -6,25 +7,25 @@ class Task:
     id: int
     name: str
     description: str
-    result: str
+    tests: str
 
-    def __init__(self, task_id: int, name: str, description: str, result: str):
+    def __init__(self, task_id: int, name: str, description: str, tests: str):
         self.id = task_id
         self.name = name
         self.description = description
-        self.result = result
+        self.tests = tests
 
     @staticmethod
-    def create(name: str, description: str, result: str) -> 'Task':
+    def create(name: str, description: str, tests: str) -> 'Task':
         """Create a new task"""
         task_id = db_action(
             '''
-                INSERT INTO tasks (name, description, result) VALUES (?, ?, ?)
+                INSERT INTO tasks (name, description, tests) VALUES (?, ?, ?)
             ''',
-            (name, description, result),
+            (name, description, tests),
             DBAction.commit,
         )
-        task = Task(task_id, name, description, result)
+        task = Task(task_id, name, description, tests)
         return task
 
     @staticmethod
@@ -61,18 +62,34 @@ class Task:
         """Save the task to the database"""
         db_action(
             '''
-                UPDATE tasks SET name = ?, description = ?, result = ? WHERE id = ?
+                UPDATE tasks SET name = ?, description = ?, tests = ? WHERE id = ?
             ''',
-            (self.name, self.description, self.result, self.id),
+            (self.name, self.description, self.tests, self.id),
             DBAction.commit,
         )
 
-    def check_solution(self, code: str) -> bool:
+    def check_solution(self, code: str) -> dict:
         """Check if the task solution is correct"""
-        result = run_code(code)
-        result = result.replace('\r', '')
-        if result[-1] == '\n':
-            result = result[:-1]
-        print(repr(result))
-        print(repr(self.result))
-        return result == self.result
+        tests = json.loads(self.tests)
+
+        tests_completed = 0
+        for test in tests:
+            program_input = test['input']
+            expected_output = test['output']
+            result = run_code(code, program_input)
+            result = result.replace('\r', '')
+            if result[-1] == '\n':
+                result = result[:-1]
+            if result != expected_output:
+                return {
+                    'status': False,
+                    'user_output': result,
+                    'expected_output': expected_output,
+                    'tests_completed': tests_completed,
+                    'tests_total': len(tests),
+                }
+            tests_completed += 1
+        return {
+            'status': True,
+        }
+
