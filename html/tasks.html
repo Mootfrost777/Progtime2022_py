@@ -2,9 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ProgTime 2022</title>
+    <title>ProgTime python 2022</title>
 </head>
 <body>
+    <style>
+        .text {
+            width: 500px;
+            height: 300px;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        #run {
+            font-family: monospace;
+            font-size: 25px;
+            margin: 0;
+            display: block;
+        }
+    </style>
     <ol id="task_list">
 
     </ol>
@@ -69,7 +88,21 @@
                     })
                 })
             let result = await response.json()
-            document.getElementById('output').value = JSON.stringify(result['result'])
+
+            if (result['status'] == 'success')
+            {
+                document.getElementById('output').value =
+                    'OK\n' +
+                    'Выполнено заданий: ' + result['tests_total'] + '/' + result['tests_total']
+            }
+            else
+            {
+                document.getElementById('output').value =
+                    'Ошибка.\n' +
+                    'Выполнено заданий: ' + result['tests_completed'] + '/' + result['tests_total'] + '\n' +
+                    'Вывод программы: ' + result['user_output'] + '\n' +
+                    'Правильный ответ: ' + result['expected_output']
+            }
         }
     </script>
 </body>

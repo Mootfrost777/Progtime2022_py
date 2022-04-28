@@ -170,9 +170,7 @@ def get_tasks(user: list = Depends(get_user)):
 def send_task(user: list = Depends(get_user), task_id: int = Body(...), code: str = Body(...)):
     """Checks task"""
     task = Task.get(task_id)
-    return {
-        'result': task.check_solution(code)
-    }
+    return task.check_solution(code)
 
 
 if __name__ == '__main__':

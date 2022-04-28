@@ -82,7 +82,7 @@ class Task:
                 result = result[:-1]
             if result != expected_output:
                 return {
-                    'status': False,
+                    'status': 'failed',
                     'user_output': result,
                     'expected_output': expected_output,
                     'tests_completed': tests_completed,
@@ -90,6 +90,7 @@ class Task:
                 }
             tests_completed += 1
         return {
-            'status': True,
+            'status': 'success',
+            'tests_total': len(tests),
         }
 
